@@ -1,11 +1,13 @@
 # Setup Project
 
 import pygame
+from random import randint, random
+from scripts.utils import DemoObject
 import sys
 
 print("Starting Game")
 
-from scripts.const import WIDTH, HEIGHT, BG_COLOR, BLUE
+from scripts.const import WIDTH, HEIGHT, BG_COLOR, BLUE, RED
 
 
 class Game:
@@ -19,16 +21,41 @@ class Game:
 
         self.clock = pygame.time.Clock()
 
-        self.rect = pygame.surface.Surface((100, 100))
-        self.rect.fill(BLUE)
+        self.objs = []
+
+        # --------------------------------------------------------------------------
+        for i in range(10):
+            myPos = (randint(0, WIDTH), randint(0, HEIGHT))
+            mySize = (randint(10, 50), randint(10, 50))
+            self.objs.append(DemoObject(myPos, mySize))
+        # --------------------------------------------------------------------------
+
+    def resize(self):
+        prevSize = self.display.get_size()
+        currentSize = self.screen.get_size()
+
+        if prevSize != currentSize:
+            ratio = (currentSize[0] / prevSize[0], currentSize[1] / prevSize[1])
+            print(ratio)
+            self.display = pygame.transform.scale(self.display, self.screen.get_size())
+            return ratio
+        return False
 
     def run(self):
         running = True
         while running:
-            # For Background ------------------------------------------------------|
-            self.display.fill(BG_COLOR)
+            myRatio = self.resize()
 
-            self.display.blit(self.rect, (100, 100))
+            # For Background ------------------------------------------------------|
+
+            self.display.fill(BG_COLOR)
+            # For Objs ------------------------------------------------------------|
+            if myRatio:
+                for obj in self.objs:
+                    obj.transformBy(myRatio)
+
+            for obj in self.objs:
+                obj.render(self.display)
             # Checking Events -----------------------------------------------------|
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -41,9 +68,7 @@ class Game:
                 if event.type == pygame.KEYUP:
                     pass
             # Rendering Screen ----------------------------------------------------|
-            self.screen.blit(
-                pygame.transform.scale(self.display, self.screen.get_size()), (0, 0)
-            )
+            self.screen.blit(self.display, (0, 0))
             pygame.display.update()
             self.clock.tick(60)
 
